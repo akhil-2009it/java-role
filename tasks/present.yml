@@ -1,0 +1,26 @@
+---
+- name: Fail if Oracle installer and no product ID
+  ansible.builtin.fail:
+    msg: "product_id required to accurately determine if Oracle JDK is already installed"
+  when:
+    - java_vendor == 'oracle'
+    - java_product_id is not defined
+
+- name: Ensure installer is present
+  ansible.builtin.include_tasks: get-installer.yml
+
+- name: Ensure Java runtime is present | {{ java_vendor }}
+  ansible.windows.win_package:
+    path: "{{ java_artifact_destination }}"
+    state: present
+    product_id: "{{ (java_vendor == 'oracle') | ternary(java_product_id, omit) }}"
+    arguments: >
+      {{ ((java_vendor == 'oracle') | ternary(['/s'], ['ADDLOCAL=CreateJavaSoft']))
+      + (java_log | ternary(['/L', java_path_log], [])) }}
+  register: _java_installed
+
+- name: Notify reboot handler
+  ansible.builtin.debug:
+    msg: Triggering reboot after Java install
+  notify: Reboot the server
+  when: _java_installed.reboot_required

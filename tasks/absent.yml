@@ -1,0 +1,24 @@
+---
+- name: Fail if Oracle installer and no product ID
+  ansible.builtin.fail:
+    msg: "product_id required to uninstall Oracle JDK"
+  when:
+    - java_vendor == 'oracle'
+    - java_product_id is not defined
+
+- name: Ensure installer is present
+  ansible.builtin.include_tasks: get-installer.yml
+  when: java_product_id is not defined
+
+- name: Ensure Java runtime is absent | {{ java_vendor }}
+  ansible.windows.win_package:
+    product_id: "{{ java_product_id | default(omit) }}"
+    path: "{{ (java_product_id == '') | ternary(java_artifact_destination, omit) }}"
+    state: absent
+  register: _java_absent
+
+- name: Notify reboot handler
+  ansible.builtin.debug:
+    msg: Triggering reboot after Java uninstall
+  notify: Reboot the server
+  when: _java_absent.reboot_required

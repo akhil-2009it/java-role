@@ -1,0 +1,13 @@
+---
+- name: Check if this is a supported OS platform
+  ansible.builtin.assert:
+    that:
+      - ansible_os_family == 'Windows'
+    fail_msg: '{{ ansible_os_family }} is not a supported OS platform!'
+
+- name: Include tasks | {{ java_state }}
+  ansible.builtin.include_tasks: "{{ java_state }}.yml"
+
+# Flush handlers here in case role is called several times in a play
+- name: Flush handlers
+  meta: flush_handlers

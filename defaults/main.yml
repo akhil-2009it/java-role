@@ -1,0 +1,15 @@
+---
+java_state: present
+java_vendor: oracle
+#java_product_id:
+
+java_path_temp: C:\Windows\Temp
+java_log: false
+java_path_log: "{{ java_path_temp }}\\java-install.log"
+java_paths:
+  - C:\Program Files\Java
+
+java_artifact_source: http
+java_artifact_destination: "{{ java_path_temp }}\\java-installer.exe"
+java_artifact_smb_path: '' #\\path\to\smb\share\file.exe
+java_artifact_http_path: https://artifactory.air-watch.com/artifactory/euc-cloudops/automation/jre-8u261-windows-x64.exe

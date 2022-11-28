@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  role_name: java
+  author: Joe Zollo <jzollo@vmware.com>
+  description: Installs and configures Java JRE for Windows
+  company: VMware, Inc.
+  license: GPL-3.0
+  min_ansible_version: 2.9
+  platforms:
+    - name: Windows
+      versions:
+        - 2012R2
+        - 2016
+        - 2019
+  galaxy_tags:
+    - system
+dependencies: []

@@ -1,0 +1,41 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  become_user: "{{ ansible_user }}"
+  become_method: runas
+  vars_files:
+    - ./vars.yml
+    - ../../defaults/main.yml
+  tasks:
+    - name: Get Oracle uninstaller info
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{{ oracle_product_id }}
+      register: _oracle_install
+
+    - name: Get OpenJDK uninstaller info
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{{ openjdk_product_id }}
+      register: _openjdk_install
+
+    - name: Installer assertions
+      ansible.builtin.assert:
+        that:
+          - _oracle_install.exists
+          - _openjdk_install.exists
+
+    - name: Stat the default role installer log
+      ansible.windows.win_stat:
+        path: "{{ java_path_log }}"
+      register: _default_log
+
+    - name: Stat the custom OpenJDK log
+      ansible.windows.win_stat:
+        path: "{{ openjdk_log }}"
+      register: _openjdk_log
+
+    - name: Log assertions
+      ansible.builtin.assert:
+        that:
+          - not _default_log.stat.exists
+          - _openjdk_log.stat.exists

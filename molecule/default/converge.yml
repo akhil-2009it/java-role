@@ -1,0 +1,27 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  become_user: "{{ ansible_user }}"
+  become_method: runas
+  vars_files:
+    - ./vars.yml
+  tasks:
+    - name: Install Oracle JDK
+      ansible.builtin.include_role:
+        name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
+      vars:
+        java_vendor: oracle
+        java_artifact_http_path: "{{ oracle_uri }}"
+        java_product_id: "{{ oracle_product_id }}"
+
+    - name: Install OpenJDK JRE
+      ansible.builtin.include_role:
+        name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
+      vars:
+        java_vendor: openjdk
+        java_artifact_http_path: "{{ openjdk_uri }}"
+        java_product_id: "{{ openjdk_product_id }}"
+        java_artifact_destination: "{{ java_path_temp }}\\java-installer2.exe"
+        java_log: true
+        java_path_log: "{{ openjdk_log }}"

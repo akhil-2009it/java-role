@@ -1,0 +1,52 @@
+---
+- name: Get current JREs
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\JavaSoft\Java Runtime Environment
+  register: _jres
+
+- block:
+    - name: Capture JRE install paths
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SOFTWARE\JavaSoft\Java Runtime Environment\{{ item }}
+        name: JavaHome
+      loop: "{{ _jres.sub_keys }}"
+      register: _jre_paths
+
+    - name: Construct list of unique Java Homes
+      ansible.builtin.set_fact:
+        _jhome_list: >
+          {{ (_jhome_list | default([])) +
+          [((item.value + '\\\\') | win_dirname)] }}
+      loop: "{{ _jre_paths.results }}"
+      when: ((item.value + '\\\\') | win_dirname) not in (_jhome_list | default([]))
+
+    - name: Get uninstaller IDs
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall
+      register: _uninstallers
+
+    - name: Collect uninstaller locations
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{{ item }}
+        name: InstallLocation
+      loop: "{{ _uninstallers.sub_keys }}"
+      register: _installs
+
+    - name: Map products to install locations
+      ansible.builtin.set_fact:
+        product_map: >
+          {{ (product_map | default({})) |
+          combine({item.item: ((item.value + '\\\\') |
+          win_dirname)}) }}
+      loop: "{{ _installs.results }}"
+      when:
+        - item.exists
+        - (item.value | length) > 0
+
+    - name: Uninstall Java products
+      ansible.builtin.include_tasks: absent.yml
+      loop: "{{ product_map | dict2items }}"
+      when: item.value in _jhome_list
+      vars:
+        java_product_id: "{{ item.key }}"
+  when: _jres.exists

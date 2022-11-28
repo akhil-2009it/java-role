@@ -1,0 +1,34 @@
+---
+- name: Verify artifact source in {{ _valid_sources }}
+  ansible.builtin.assert:
+    that: java_artifact_source in _valid_sources
+    msg: java_artifact_source must be one of {{ _valid_sources }}
+
+- name: SMB | Copy installer to specified path
+  ansible.windows.win_copy:
+    src: "{{ java_artifact_smb_path }}"
+    dest: "{{ java_artifact_destination }}"
+    remote_src: yes
+  when: java_artifact_source == "smb"
+
+- name: HTTP | Download installer to specified path
+  ansible.windows.win_get_url:
+    url: "{{ java_artifact_http_path }}"
+    dest: "{{ java_artifact_destination }}"
+    force: false
+  when: java_artifact_source == "http"
+
+- name: LOCAL | Verify local file exists
+  block:
+    - name: Stat | {{ java_artifact_destination }}
+      ansible.windows.win_stat:
+        path: "{{ java_artifact_destination }}"
+      register: _java_installer
+
+    - name: Validate installer found locally
+      ansible.builtin.assert:
+        that: _java_installer.stat.exists
+        msg: >
+          Java installer {{ java_artifact_destination }}
+          not found locally.
+  when: java_artifact_source == "local"

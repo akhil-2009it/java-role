@@ -1,0 +1,6 @@
+---
+openjdk_uri: https://artifactory.air-watch.com/artifactory/euc-cloudops/automation/openjdk-jre11.0.17+7-windows-amd64.msi
+openjdk_product_id: '{ACEFE3BF-BDC5-458F-8DA4-086C095CA8DE}'
+openjdk_log: C:\openjdk-install.log
+oracle_uri: https://artifactory.air-watch.com/artifactory/euc-cloudops/automation/jre-8u261-windows-x64.exe
+oracle_product_id: '{26A24AE4-039D-4CA4-87B4-2F64180261F0}'
